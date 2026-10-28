@@ -16,16 +16,17 @@ import org.springframework.core.NamedThreadLocal;
 import org.springframework.stereotype.Component;
 import org.springframework.validation.BindingResult;
 import org.springframework.web.multipart.MultipartFile;
-import com.alibaba.fastjson.JSONObject;
-import com.alibaba.fastjson.support.spring.PropertyPreFilters;
+import com.alibaba.fastjson2.JSON;
 import com.ruoyi.common.annotation.Log;
 import com.ruoyi.common.core.domain.entity.SysUser;
-import com.ruoyi.common.core.text.Convert;
+import com.ruoyi.common.core.domain.model.LoginUser;
 import com.ruoyi.common.enums.BusinessStatus;
-import com.ruoyi.common.utils.ExceptionUtil;
+import com.ruoyi.common.enums.HttpMethod;
+import com.ruoyi.common.filter.PropertyPreExcludeFilter;
+import com.ruoyi.common.utils.SecurityUtils;
 import com.ruoyi.common.utils.ServletUtils;
-import com.ruoyi.common.utils.ShiroUtils;
 import com.ruoyi.common.utils.StringUtils;
+import com.ruoyi.common.utils.ip.IpUtils;
 import com.ruoyi.framework.manager.AsyncManager;
 import com.ruoyi.framework.manager.factory.AsyncFactory;
 import com.ruoyi.system.domain.SysOperLog;
@@ -47,14 +48,11 @@ public class LogAspect
     /** 计算操作消耗时间 */
     private static final ThreadLocal<Long> TIME_THREADLOCAL = new NamedThreadLocal<Long>("Cost Time");
 
-    /** 参数最大长度限制 */
-    private static final int PARAM_MAX_LENGTH = 2000;
-
     /**
      * 处理请求前执行
      */
     @Before(value = "@annotation(controllerLog)")
-    public void doBefore(JoinPoint joinPoint, Log controllerLog)
+    public void boBefore(JoinPoint joinPoint, Log controllerLog)
     {
         TIME_THREADLOCAL.set(System.currentTimeMillis());
     }
@@ -87,20 +85,20 @@ public class LogAspect
         try
         {
             // 获取当前的用户
-            SysUser currentUser = ShiroUtils.getSysUser();
+            LoginUser loginUser = SecurityUtils.getLoginUser();
 
             // *========数据库日志=========*//
             SysOperLog operLog = new SysOperLog();
             operLog.setStatus(BusinessStatus.SUCCESS.ordinal());
             // 请求的地址
-            String ip = ShiroUtils.getIp();
+            String ip = IpUtils.getIpAddr();
             operLog.setOperIp(ip);
             operLog.setOperUrl(StringUtils.substring(ServletUtils.getRequest().getRequestURI(), 0, 255));
-            if (currentUser != null)
+            if (loginUser != null)
             {
-                operLog.setOperName(currentUser.getLoginName());
-                if (StringUtils.isNotNull(currentUser.getDept())
-                        && StringUtils.isNotEmpty(currentUser.getDept().getDeptName()))
+                operLog.setOperName(loginUser.getUsername());
+                SysUser currentUser = loginUser.getUser();
+                if (StringUtils.isNotNull(currentUser) && StringUtils.isNotNull(currentUser.getDept()))
                 {
                     operLog.setDeptName(currentUser.getDept().getDeptName());
                 }
@@ -109,7 +107,7 @@ public class LogAspect
             if (e != null)
             {
                 operLog.setStatus(BusinessStatus.FAIL.ordinal());
-                operLog.setErrorMsg(StringUtils.substring(Convert.toStr(e.getMessage(), ExceptionUtil.getExceptionMessage(e)), 0, 2000));
+                operLog.setErrorMsg(StringUtils.substring(e.getMessage(), 0, 2000));
             }
             // 设置方法名称
             String className = joinPoint.getTarget().getClass().getName();
@@ -160,7 +158,7 @@ public class LogAspect
         // 是否需要保存response，参数和值
         if (log.isSaveResponseData() && StringUtils.isNotNull(jsonResult))
         {
-            operLog.setJsonResult(StringUtils.substring(JSONObject.toJSONString(jsonResult), 0, 2000));
+            operLog.setJsonResult(StringUtils.substring(JSON.toJSONString(jsonResult), 0, 2000));
         }
     }
 
@@ -172,29 +170,18 @@ public class LogAspect
      */
     private void setRequestValue(JoinPoint joinPoint, SysOperLog operLog, String[] excludeParamNames) throws Exception
     {
-        Map<String, String[]> map = ServletUtils.getRequest().getParameterMap();
-        if (StringUtils.isNotEmpty(map))
+        Map<?, ?> paramsMap = ServletUtils.getParamMap(ServletUtils.getRequest());
+        String requestMethod = operLog.getRequestMethod();
+        if (StringUtils.isEmpty(paramsMap)
+                && (HttpMethod.PUT.name().equals(requestMethod) || HttpMethod.POST.name().equals(requestMethod)))
         {
-            String params = JSONObject.toJSONString(map, excludePropertyPreFilter(excludeParamNames));
-            operLog.setOperParam(StringUtils.substring(params, 0, PARAM_MAX_LENGTH));
+            String params = argsArrayToString(joinPoint.getArgs(), excludeParamNames);
+            operLog.setOperParam(StringUtils.substring(params, 0, 2000));
         }
         else
         {
-            Object args = joinPoint.getArgs();
-            if (StringUtils.isNotNull(args))
-            {
-                String params = argsArrayToString(joinPoint.getArgs(), excludeParamNames);
-                operLog.setOperParam(params);
-            }
+            operLog.setOperParam(StringUtils.substring(JSON.toJSONString(paramsMap, excludePropertyPreFilter(excludeParamNames)), 0, 2000));
         }
-    }
-
-    /**
-     * 忽略敏感属性
-     */
-    public PropertyPreFilters.MySimplePropertyPreFilter excludePropertyPreFilter(String[] excludeParamNames)
-    {
-        return new PropertyPreFilters().addFilter().addExcludes(ArrayUtils.addAll(EXCLUDE_PROPERTIES, excludeParamNames));
     }
 
     /**
@@ -202,7 +189,7 @@ public class LogAspect
      */
     private String argsArrayToString(Object[] paramsArray, String[] excludeParamNames)
     {
-        StringBuilder params = new StringBuilder();
+        String params = "";
         if (paramsArray != null && paramsArray.length > 0)
         {
             for (Object o : paramsArray)
@@ -211,21 +198,24 @@ public class LogAspect
                 {
                     try
                     {
-                        Object jsonObj = JSONObject.toJSONString(o, excludePropertyPreFilter(excludeParamNames));
-                        params.append(jsonObj).append(" ");
-                        if (params.length() >= PARAM_MAX_LENGTH)
-                        {
-                            return StringUtils.substring(params.toString(), 0, PARAM_MAX_LENGTH);
-                        }
+                        String jsonObj = JSON.toJSONString(o, excludePropertyPreFilter(excludeParamNames));
+                        params += jsonObj.toString() + " ";
                     }
                     catch (Exception e)
                     {
-                        log.error("请求参数拼装异常 msg:{}, 参数:{}", e.getMessage(), paramsArray, e);
                     }
                 }
             }
         }
-        return params.toString();
+        return params.trim();
+    }
+
+    /**
+     * 忽略敏感属性
+     */
+    public PropertyPreExcludeFilter excludePropertyPreFilter(String[] excludeParamNames)
+    {
+        return new PropertyPreExcludeFilter().addExcludes(ArrayUtils.addAll(EXCLUDE_PROPERTIES, excludeParamNames));
     }
 
     /**

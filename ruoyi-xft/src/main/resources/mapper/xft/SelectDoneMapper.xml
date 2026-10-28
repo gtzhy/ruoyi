@@ -1,0 +1,656 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+	"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="com.ruoyi.xft.mapper.SelectDoneMapper">
+	<resultMap id="WorkFile" type="com.ruoyi.xft.entity.WorkFile">
+	  <result property="workFileType" column="workfiletype" />
+	  <result property="workFileId" column="workfileid" />
+	  <result property="workFileDoneTime" column="workfiledonetime" />
+	  <result property="workPerson" column="workperson" />
+	  <result property="workGroup" column="workgroup" />
+	  <result property="payee" column="payee" />
+	  <result property="workFilePjName" column="workFilepjname" />
+	  <result property="workFileProject" column="workfileproject" />
+	  <result property="workFileAmountType" column="workfileamounttype" />
+	  <result property="workFileSingleAmount" column="workfilesingleamount" />
+	  <result property="workFileTotalAmount" column="workfiletotalamount" />
+	  <result property="workFileAmountDesc" column="workfileamountdesc" />
+	  <result property="workDesc" column="workdesc" />
+	  <result property="formId" column="formid" />
+	  <result property="recordId" column="recordid" />
+	</resultMap>
+	<!-- 返回结果类型如果用的是 resultType，里面可以是map，也就是键值对，键名就是列名或是列别名；也可以是其他对象，这里用了UserBean接收结果，那么查询的列别名必须和UserBean的属性名保持一致-->
+	<select id="selectYBFK" resultMap="WorkFile">
+        SELECT 
+        	w.WORKFILETYPE AS workfiletype,
+			a.jst_3128_f4058 AS workfileid,
+			COALESCE(a.jst_3128_f6227, w.WORKDONEWITHDATE) AS workfiledonetime,
+			a.jst_3128_f4060 AS workperson,
+			a.jst_3128_f4061 AS workgroup,
+			a.jst_3128_f4062 AS payee,
+			b.jst_3129_f5381 AS workfilepjname,
+			b.jst_3129_f5382 AS workfileproject,
+			b.jst_3129_f4077 AS workfileamounttype,
+			b.jst_3129_f4078 AS workfilesingleamount,
+        	a.jst_3128_f4068 AS workfiletotalamount,
+        	a.jst_3128_f4065 AS workfileamountdesc,
+			a.jst_3128_f4070 AS workdesc,
+			w.WORKTABLE_ID AS formid,
+			w.WORKRECORD_ID AS recordid
+        FROM jst_3128 a
+        JOIN jsf_work w 
+       		ON w.WORKRECORD_ID=a.jst_3128_id AND w.WF_CUREMPLOYEE_ID=a.jst_3128_owner AND w.WORKSTATUS=100
+			<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+				AND COALESCE(a.jst_3128_f6227, w.WORKDONEWITHDATE)  BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+			</if>
+		JOIN jst_3129 b
+			ON a.jst_3128_id = b.jst_3129_FOREIGNKEY AND b.jst_3129_FOREIGNKEY IN (
+				SELECT jst_3129_FOREIGNKEY FROM jst_3129
+				<where>
+					<if test="workFilePjName != null">
+						AND jst_3129_f5381 LIKE CONCAT('%', #{workFilePjName}, '%')  
+					</if>
+					<if test="workFileProject != null">
+						AND jst_3129_f5382 LIKE CONCAT('%', #{workFileProject}, '%')  
+					</if>
+					<if test="workFileAmountType != null">
+						AND jst_3129_f4077 LIKE CONCAT('%', #{workFileAmountType}, '%')
+					</if>
+				</where>
+				GROUP BY jst_3129_FOREIGNKEY
+			)
+		<where>
+			<if test="workPerson != null">
+				AND a.jst_3128_f4060 LIKE CONCAT('%', #{workPerson}, '%')
+			</if>
+			<if test="workGroup != null">
+				AND a.jst_3128_f4061 LIKE CONCAT('%', #{workGroup}, '%')  
+			</if>
+			<if test="payee != null">
+				AND a.jst_3128_f4062 LIKE CONCAT('%', #{payee}, '%')  
+			</if>
+			<if test="workFileTotalAmount != null">
+				AND a.jst_3128_f4068 = #{workFileTotalAmount}
+			</if>
+			<if test="workFileAmountDesc != null">
+				AND a.jst_3128_f4065 LIKE CONCAT('%', #{workFileAmountDesc}, '%')
+			</if>
+			<if test="workDesc != null">
+				AND a.jst_3128_f4070 LIKE CONCAT('%', #{workDesc}, '%')
+			</if>
+        </where>
+        ORDER BY workfiledonetime
+    </select>
+    <select id="selectBXLB" resultMap="WorkFile">
+        SELECT 
+        	w.WORKFILETYPE AS workfiletype,
+			a.jst_3124_f3983 AS workfileid,
+			COALESCE(a.jst_3124_f6228, w.WORKDONEWITHDATE) AS workfiledonetime,
+			a.jst_3124_f3985 AS workperson,
+			a.jst_3124_f3986 AS workgroup,
+			a.jst_3124_f3985 AS payee,
+			a.jst_3124_f5170 AS workfilepjname,
+			a.jst_3124_f5171 AS workfileproject,
+			b.jst_3126_f5172 AS workfileamounttype,
+			b.jst_3126_f4036 AS workfilesingleamount,
+			a.jst_3124_f3993 AS workfiletotalamount,
+			a.jst_3124_f3990 AS workfileamountdesc,
+			a.jst_3124_f3995 AS workdesc,
+			w.WORKTABLE_ID AS formid,
+			w.WORKRECORD_ID AS recordid
+        FROM jst_3124 a 
+        JOIN jsf_work w
+        	ON w.WORKRECORD_ID=a.jst_3124_id AND w.WF_CUREMPLOYEE_ID=a.jst_3124_owner AND w.WORKSTATUS=100 AND w.WORKFILETYPE NOT LIKE '%对公%'
+        	<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+				AND COALESCE (a.jst_3124_f6228, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}  
+			</if>
+		JOIN jst_3126 b
+			ON a.jst_3124_id = b.jst_3126_FOREIGNKEY AND b.jst_3126_FOREIGNKEY IN (
+				SELECT jst_3126_FOREIGNKEY FROM jst_3126 
+				<where>
+		        	<if test="workFileAmountType != null">
+		        		AND jst_3126_f5172 LIKE CONCAT('%', #{workFileAmountType}, '%')  
+		        	</if>
+				</where>
+				GROUP BY jst_3126_FOREIGNKEY
+			)
+		<where>
+			<if test="workPerson != null">
+				AND a.jst_3124_f3985 LIKE CONCAT('%', #{workPerson}, '%')
+			</if>
+			<if test="workGroup != null">
+				AND a.jst_3124_f3986 LIKE CONCAT('%', #{workGroup}, '%')  
+			</if>
+			<if test="workFilePjName != null">
+				AND a.jst_3124_f5170 LIKE CONCAT('%', #{workFilePjName}, '%')  
+			</if>
+			<if test="workFileProject != null">
+				AND a.jst_3124_f5171 LIKE CONCAT('%', #{workFileProject}, '%')  
+			</if>
+			<if test="workFileTotalAmount != null">
+				AND a.jst_3124_f3993 = #{workFileTotalAmount}
+			</if>
+			<if test="workFileAmountDesc != null">
+				AND a.jst_3124_f3990 LIKE CONCAT('%', #{workFileAmountDesc}, '%')
+			</if>
+			<if test="workDesc != null">
+				AND a.jst_3124_f3995 LIKE CONCAT('%', #{workDesc}, '%')
+			</if>
+        </where>
+        ORDER BY workfiledonetime
+    </select>
+    <select id="selectBXWL" resultMap="WorkFile">
+        SELECT
+        	w.WORKFILETYPE AS workfiletype,
+			a.jst_3124_f3983 AS workfileid,
+			COALESCE(a.jst_3124_f6228, w.WORKDONEWITHDATE) AS workfiledonetime,
+			a.jst_3124_f3985 AS workperson,
+			a.jst_3124_f3986 AS workgroup,
+			a.jst_3124_f3987 AS payee,
+			a.jst_3124_f5170 AS workfilepjname,
+			a.jst_3124_f5171 AS workfileproject,
+			b.jst_3126_f5172 AS workfileamounttype,
+			b.jst_3126_f4036 AS workfilesingleamount,
+			a.jst_3124_f3993 AS workfiletotalamount,
+			a.jst_3124_f3990 AS workfileamountdesc,
+			a.jst_3124_f3995 AS workdesc,
+			w.WORKTABLE_ID AS formid,
+			w.WORKRECORD_ID AS recordid
+        FROM jst_3124 a 
+        JOIN jsf_work w
+        	ON w.WORKRECORD_ID=a.jst_3124_id AND w.WF_CUREMPLOYEE_ID=a.jst_3124_owner AND w.WORKSTATUS=100 AND w.WORKFILETYPE NOT LIKE '%对私%'
+        	<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+				AND COALESCE (a.jst_3124_f6228, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}  
+			</if>
+		JOIN jst_3126 b
+			ON a.jst_3124_id = b.jst_3126_FOREIGNKEY AND b.jst_3126_FOREIGNKEY IN (
+				SELECT jst_3126_FOREIGNKEY FROM jst_3126 
+				<where>
+		        	<if test="workFileAmountType != null">
+		        		AND jst_3126_f5172 LIKE CONCAT('%', #{workFileAmountType}, '%')  
+		        	</if>
+				</where>
+				GROUP BY jst_3126_FOREIGNKEY
+			)
+		<where>
+			<if test="workPerson != null">
+				AND a.jst_3124_f3985 LIKE CONCAT('%', #{workPerson}, '%')
+			</if>
+			<if test="workGroup != null">
+				AND a.jst_3124_f3986 LIKE CONCAT('%', #{workGroup}, '%')  
+			</if>
+			<if test="payee != null">
+				AND a.jst_3124_f3987 LIKE CONCAT('%', #{payee}, '%')  
+			</if>
+			<if test="workFilePjName != null">
+				AND a.jst_3124_f5170 LIKE CONCAT('%', #{workFilePjName}, '%')  
+			</if>
+			<if test="workFileProject != null">
+				AND a.jst_3124_f5171 LIKE CONCAT('%', #{workFileProject}, '%')  
+			</if>
+			<if test="workFileTotalAmount != null">
+				AND a.jst_3124_f3993 = #{workFileTotalAmount}
+			</if>
+			<if test="workFileAmountDesc != null">
+				AND a.jst_3124_f3990 LIKE CONCAT('%', #{workFileAmountDesc}, '%')
+			</if>
+			<if test="workDesc != null">
+				AND a.jst_3124_f3995 LIKE CONCAT('%', #{workDesc}, '%')
+			</if>
+        </where>
+        ORDER BY workfiledonetime
+    </select>
+    <select id="selectFYBX" resultMap="WorkFile">
+        SELECT 
+        	w.WORKFILETYPE AS workfiletype,
+			a.jst_3130_f4080 AS workfileid,
+			COALESCE(a.jst_3130_f6229, w.WORKDONEWITHDATE) AS workfiledonetime,
+			a.jst_3130_f4082 AS workperson,
+			a.jst_3130_f4083 AS workgroup,
+			a.jst_3130_f4082 AS payee,
+			b.jst_3131_f4097 AS workfilepjname,
+			b.jst_3131_f5166 AS workfileproject,
+			b.jst_3131_f5254 AS workfileamounttype,
+			b.jst_3131_f4101 AS workfilesingleamount,
+			a.jst_3130_f4084 AS workfiletotalamount,
+			a.jst_3130_f4086 AS workfileamountdesc,
+			a.jst_3130_f4090 AS workdesc,
+			w.WORKTABLE_ID AS formid,
+			w.WORKRECORD_ID AS recordid
+        FROM jst_3130 a
+        JOIN jsf_work w 
+        	ON w.WORKRECORD_ID=a.jst_3130_id AND w.WF_CUREMPLOYEE_ID=a.jst_3130_owner AND w.WORKSTATUS=100
+        	<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+				AND COALESCE(a.jst_3130_f6229, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}  
+			</if> 
+		JOIN jst_3131 b 
+			ON a.jst_3130_id = b.jst_3131_FOREIGNKEY AND b.jst_3131_FOREIGNKEY IN (
+				SELECT jst_3131_FOREIGNKEY FROM jst_3131 
+				<where>
+		        	<if test="workFilePjName != null">
+		        		AND jst_3131_f4097 LIKE CONCAT('%', #{workFilePjName}, '%')  
+		        	</if>
+		        	<if test="workFileProject != null">
+		        		AND jst_3131_f5166 LIKE CONCAT('%', #{workFileProject}, '%')  
+		        	</if>
+		        	<if test="workFileAmountType != null">
+		        		AND jst_3131_f5254 LIKE CONCAT('%', #{workFileAmountType}, '%')  
+		        	</if>
+				</where>
+				GROUP BY jst_3131_FOREIGNKEY
+			)
+		<where>
+			<if test="workPerson != null">
+				AND a.jst_3130_f4082 LIKE CONCAT('%', #{workPerson}, '%')
+			</if>
+			<if test="workGroup != null">
+				AND a.jst_3130_f4083 LIKE CONCAT('%', #{workGroup}, '%')  
+			</if>
+			<if test="workFileTotalAmount != null">
+				AND a.jst_3130_f4084 = #{workFileTotalAmount}
+			</if>
+			<if test="workFileAmountDesc != null">
+				AND a.jst_3130_f4086 LIKE CONCAT('%', #{workFileAmountDesc}, '%')
+			</if>
+			<if test="workDesc != null">
+				AND a.jst_3130_f4090 LIKE CONCAT('%', #{workDesc}, '%')
+			</if>
+        </where>
+        ORDER BY workfiledonetime
+    </select>
+    <select id="selectPXBX" resultMap="WorkFile">
+        SELECT 
+        	w.WORKFILETYPE AS workfiletype,
+			a.jst_3150_f4080 AS workfileid,
+			COALESCE(a.jst_3150_f6230, w.WORKDONEWITHDATE) AS workfiledonetime,
+			a.jst_3150_f4082 AS workperson,
+			a.jst_3150_f4083 AS workgroup,
+			a.jst_3150_f4082 AS payee,
+			a.jst_3150_f5177 AS workfilepjname,
+			a.jst_3150_f5178 AS workfileproject,
+			b.jst_3151_f4405 AS workfileamounttype,
+			b.jst_3151_f4407 AS workfilesingleamount,
+			a.jst_3150_f4084 AS workfiletotalamount,
+			b.jst_3151_f4417 AS workfileamountdesc,
+			a.jst_3150_f4090 AS workdesc,
+			w.WORKTABLE_ID AS formid,
+			w.WORKRECORD_ID AS recordid
+        FROM jst_3150 a
+        JOIN jsf_work w 
+        	ON w.WORKRECORD_ID=a.jst_3150_id AND w.WF_CUREMPLOYEE_ID=a.jst_3150_owner AND w.WORKSTATUS=100
+        	<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+				AND COALESCE(a.jst_3150_f6230, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}  
+			</if>
+		JOIN jst_3151 b
+			ON a.jst_3150_id = b.jst_3151_FOREIGNKEY AND b.jst_3151_FOREIGNKEY IN (
+				SELECT jst_3151_FOREIGNKEY FROM jst_3151 
+				<where>
+		        	<if test="workFileAmountType != null">
+		        		AND jst_3151_f4405 LIKE CONCAT('%', #{workFileAmountType}, '%')  
+		        	</if>
+		        	
+		        	<if test="workFileAmountDesc != null">
+		        		AND jst_3151_f4417 LIKE CONCAT('%', #{workFileAmountDesc}, '%')
+		        	</if>
+				</where>
+				GROUP BY jst_3151_FOREIGNKEY
+			)
+		<where>
+			<if test="workPerson != null">
+				AND a.jst_3150_f4082 LIKE CONCAT('%', #{workPerson}, '%')
+			</if>
+			<if test="workGroup != null">
+				AND a.jst_3150_f4083 LIKE CONCAT('%', #{workGroup}, '%')  
+			</if>
+			<if test="workFilePjName != null">
+				AND a.jst_3150_f5177 LIKE CONCAT('%', #{workFilePjName}, '%')  
+			</if>
+			<if test="workFileProject != null">
+				AND a.jst_3150_f5178 LIKE CONCAT('%', #{workFileProject}, '%')  
+			</if>
+			<if test="workFileTotalAmount != null">
+				AND a.jst_3150_f4084 = #{workFileTotalAmount}
+			</if>
+			<if test="workDesc != null">
+				AND a.jst_3150_f4090 LIKE CONCAT('%', #{workDesc}, '%')
+			</if>
+        </where>
+        ORDER BY workfiledonetime
+    </select>
+    <select id="selectCLBX" resultMap="WorkFile">
+        SELECT 
+        	w.WORKFILETYPE AS workfiletype,
+			a.jst_3132_f4103 AS workfileid,
+			COALESCE(a.jst_3132_f6232, w.WORKDONEWITHDATE) AS workfiledonetime,
+			a.jst_3132_f4105 AS workperson,
+			a.jst_3132_f4106 AS workgroup,
+			a.jst_3132_f4105 AS payee,
+			a.jst_3132_f4111 AS workfilepjname,
+			a.jst_3132_f4112 AS workfileproject,
+			'差旅费' AS workfileamounttype,
+			a.jst_3132_f4113 AS workfilesingleamount,
+			a.jst_3132_f4113 AS workfiletotalamount,
+			a.jst_3132_f4109 AS workfileamountdesc,
+			a.jst_3132_f4118 AS workdesc,
+			w.WORKTABLE_ID AS formid,
+			w.WORKRECORD_ID AS recordid
+        FROM jst_3132 a
+        JOIN jsf_work w
+        	ON w.WORKRECORD_ID=a.jst_3132_id AND w.WF_CUREMPLOYEE_ID=a.jst_3132_owner AND w.WORKSTATUS=100
+        	<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+        		AND COALESCE(a.jst_3132_f6232, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}  
+        	</if>
+		<where>
+        	<if test="workPerson != null">
+        		AND a.jst_3132_f4105 LIKE CONCAT('%', #{workPerson}, '%')
+        	</if>
+        	<if test="workGroup != null">
+        		AND a.jst_3132_f4106 LIKE CONCAT('%', #{workGroup}, '%')  
+        	</if>
+        	<if test="workFilePjName != null">
+        		AND a.jst_3132_f4111 LIKE CONCAT('%', #{workFilePjName}, '%')  
+        	</if>
+        	<if test="workFileProject != null">
+        		AND a.jst_3132_f4112 LIKE CONCAT('%', #{workFileProject}, '%')  
+        	</if>
+        	<if test="workFileAmountType != null">
+        		AND #{workFileAmountType} LIKE '%差旅%' 
+        	</if>
+        	<if test="workFileTotalAmount != null">
+        		AND a.jst_3132_f4113 = #{workFileTotalAmount}
+        	</if>
+        	<if test="workFileAmountDesc != null">
+        		AND a.jst_3132_f4109 LIKE CONCAT('%', #{workFileAmountDesc}, '%')
+        	</if>
+        	<if test="workDesc != null">
+        		AND a.jst_3132_f4118 LIKE CONCAT('%', #{workDesc}, '%')
+        	</if>
+		</where>
+		ORDER BY workfiledonetime
+    </select>
+	<select id="selectXMCL" resultMap="WorkFile">
+        SELECT
+            w.WORKFILETYPE AS workfiletype,
+		    a.jst_3209_f4103 AS workfileid,
+		    COALESCE(a.jst_3209_f6231, w.WORKDONEWITHDATE) AS workfiledonetime,
+		    a.jst_3209_f4105 AS workperson,
+		    a.jst_3209_f4106 AS workgroup,
+		    a.jst_3209_f4105 AS payee,
+		    a.jst_3209_f4111 AS workfilepjname,
+		    a.jst_3209_f4112 AS workfileproject,
+		    a.jst_3209_f5179 AS workfileamounttype,
+		    a.jst_3209_f4113 AS workfilesingleamount,
+		    a.jst_3209_f4113 AS workfiletotalamount,
+		    a.jst_3209_f4109 AS workfileamountdesc,
+		    a.jst_3209_f4118 AS workdesc,
+		    w.WORKTABLE_ID AS formid,
+			w.WORKRECORD_ID AS recordid
+        FROM jst_3209 a
+        JOIN jsf_work w
+        	ON w.WORKRECORD_ID=a.jst_3209_id AND w.WF_CUREMPLOYEE_ID=a.jst_3209_owner AND w.WORKSTATUS=100
+        	<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+        		AND COALESCE(a.jst_3209_f6231, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}  
+        	</if>
+        <where>
+        	<if test="workPerson != null">
+        		AND a.jst_3209_f4105 LIKE CONCAT('%', #{workPerson}, '%')
+        	</if>
+        	<if test="workGroup != null">
+        		AND a.jst_3209_f4106 LIKE CONCAT('%', #{workGroup}, '%')  
+        	</if>
+        	<if test="workFilePjName != null">
+        		AND a.jst_3209_f4111 LIKE CONCAT('%', #{workFilePjName}, '%')  
+        	</if>
+        	<if test="workFileProject != null">
+        		AND a.jst_3209_f4112 LIKE CONCAT('%', #{workFileProject}, '%')  
+        	</if>
+        	<if test="workFileAmountType != null">
+        		AND a.jst_3209_f5179 LIKE CONCAT('%', #{workFileAmountType}, '%')  
+        	</if>
+        	<if test="workFileTotalAmount != null">
+        		AND a.jst_3209_f4113 = #{workFileTotalAmount}
+        	</if>
+        	<if test="workFileAmountDesc != null">
+        		AND a.jst_3209_f4109 LIKE CONCAT('%', #{workFileAmountDesc}, '%') 
+        	</if>
+        	<if test="workDesc != null">
+        		AND a.jst_3209_f4118 LIKE CONCAT('%', #{workDesc}, '%')
+        	</if>
+        </where>
+        ORDER BY workfiledonetime
+    </select>
+    <select id="selectYWZD" resultMap="WorkFile">
+		SELECT 
+			w.WORKFILETYPE AS workfiletype,
+			a.jst_3138_f4198 AS workfileid,
+			COALESCE(a.jst_3138_f6234, w.WORKDONEWITHDATE) AS workfiledonetime,
+			a.jst_3138_f4201 AS workperson,
+			a.jst_3138_f4200 AS workgroup,
+			a.jst_3138_f4201 AS payee,
+			a.jst_3138_f5168 AS workfilepjname,
+			a.jst_3138_f5169 AS workfileproject,
+			a.jst_3138_f4202 AS workfileamounttype,
+			a.jst_3138_f4203 AS workfilesingleamount,
+			a.jst_3138_f4203 AS workfiletotalamount,
+			a.jst_3138_f4204 AS workfileamountdesc,
+			a.jst_3138_f4207 AS workdesc,
+			w.WORKTABLE_ID AS formid,
+			w.WORKRECORD_ID AS recordid
+		FROM jst_3138 a
+		JOIN jsf_work w
+			ON w.WORKRECORD_ID=a.jst_3138_id AND w.WF_CUREMPLOYEE_ID=a.jst_3138_owner AND w.WORKSTATUS=100
+			<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+				AND COALESCE(a.jst_3138_f6234, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}  
+			</if>
+		<where>
+			<if test="workPerson != null">
+				AND a.jst_3138_f4201 LIKE CONCAT('%', #{workPerson}, '%')
+			</if>
+			<if test="workGroup != null">
+				AND a.jst_3138_f4200 LIKE CONCAT('%', #{workGroup}, '%')  
+			</if>
+			<if test="workFilePjName != null">
+				AND a.jst_3138_f5168 LIKE CONCAT('%', #{workFilePjName}, '%')  
+			</if>
+			<if test="workFileProject != null">
+				AND a.jst_3138_f5169 LIKE CONCAT('%', #{workFileProject}, '%')  
+			</if>
+			<if test="workFileAmountType != null">
+				AND a.jst_3138_f4202 LIKE CONCAT('%', #{workFileAmountType}, '%')  
+			</if>
+			<if test="workFileTotalAmount != null">
+				AND a.jst_3138_f4203 = #{workFileTotalAmount}
+			</if>
+			<if test="workFileAmountDesc != null">
+				AND a.jst_3138_f4204 LIKE CONCAT('%', #{workFileAmountDesc}, '%')
+			</if>
+			<if test="workDesc != null">
+				AND a.jst_3138_f4207 LIKE CONCAT('%', #{workDesc}, '%')
+			</if>
+		</where>
+		ORDER BY workfiledonetime
+	</select>
+    <select id="selectGCFK" resultMap="WorkFile">
+        SELECT
+		  w.WORKFILETYPE AS workfiletype,
+		  a.jst_3207_f3983 AS workfileid,
+		  COALESCE(a.jst_3207_f6235, w.WORKDONEWITHDATE) AS workfiledonetime,
+		  a.jst_3207_f3985 AS workperson,
+		  a.jst_3207_f3986 AS workgroup,
+		  a.jst_3207_f3987 AS payee,
+		  b.jst_3206_f4034 AS workfilepjname,
+		  b.jst_3206_f4035 AS workfileproject,
+		  a.jst_3207_f3990 AS workfileamounttype,
+		  b.jst_3206_f4036 AS workfilesingleamount,
+		  a.jst_3207_f3993 AS workfiletotalamount,
+		  b.jst_3206_f5172 AS workfileamountdesc,
+		  a.jst_3207_f3995 AS workdesc,
+		  w.WORKTABLE_ID AS formid,
+		  w.WORKRECORD_ID AS recordid
+		FROM
+		  jst_3207 a
+		JOIN jsf_work w
+			ON w.WORKRECORD_ID=a.jst_3207_id AND w.WF_CUREMPLOYEE_ID=a.jst_3207_owner AND w.WORKSTATUS=100
+			<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+				AND COALESCE(a.jst_3207_f6235, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}  
+			</if>
+		JOIN jst_3206 b
+			ON a.jst_3207_id = b.jst_3206_FOREIGNKEY AND b.jst_3206_FOREIGNKEY IN (
+				SELECT jst_3206_FOREIGNKEY FROM jst_3206
+				<where>
+		        	<if test="workFileAmountDesc != null">
+		        		AND jst_3206_f5172 LIKE CONCAT('%', #{workFileAmountDesc}, '%')  
+		        	</if>
+				</where>
+				GROUP BY jst_3206_FOREIGNKEY
+			)
+		<where>
+			<if test="workPerson != null">
+				AND a.jst_3207_f3985 LIKE CONCAT('%', #{workPerson}, '%')
+			</if>
+			<if test="workGroup != null">
+				AND a.jst_3207_f3986 LIKE CONCAT('%', #{workGroup}, '%')  
+			</if>
+			<if test="payee != null">
+				AND a.jst_3207_f3987 LIKE CONCAT('%', #{payee}, '%')  
+			</if>
+			<if test="workFilePjName != null">
+				AND b.jst_3206_f4034 LIKE CONCAT('%', #{workFilePjName}, '%')
+			</if>
+			<if test="workFileProject != null">
+				AND b.jst_3206_f4035 LIKE CONCAT('%', #{workFileProject}, '%')
+			</if>
+			<if test="workFileAmountType != null">
+				AND a.jst_3207_f3990 LIKE CONCAT('%', #{workFileAmountType}, '%')  
+			</if>
+			<if test="workFileTotalAmount != null">
+				AND a.jst_3207_f3993 = #{workFileTotalAmount}
+			</if>
+			<if test="workDesc != null">
+				AND a.jst_3207_f3995 LIKE CONCAT('%', #{workDesc}, '%')
+			</if>
+		</where>
+		ORDER BY workfiledonetime
+    </select>
+	<select id="selectCBX" resultMap="WorkFile">
+		SELECT 
+			w.WORKFILETYPE AS workfiletype,
+			a.jst_3210_f4103 AS workfileid,
+			COALESCE(a.jst_3210_f6236, w.WORKDONEWITHDATE) AS workfiledonetime,
+			a.jst_3210_f4105 AS workperson,
+			a.jst_3210_f4106 AS workgroup,
+			a.jst_3210_f4105 AS payee,
+			a.jst_3210_f4111 AS workfilepjname,
+			a.jst_3210_f4112 AS workfileproject,
+			b.jst_3211_f5270 AS workfileamounttype,
+			b.jst_3211_f5271 AS workfilesingleamount,
+			a.jst_3210_f4113 AS workfiletotalamount,
+			a.jst_3210_f4109 AS workfileamountdesc,
+			a.jst_3210_f4118 AS workdesc,
+			w.WORKTABLE_ID AS formid,
+			w.WORKRECORD_ID AS recordid
+		FROM jst_3210 a
+		JOIN jsf_work w
+			ON w.WORKRECORD_ID=a.jst_3210_id AND w.WF_CUREMPLOYEE_ID=a.jst_3210_owner AND w.WORKSTATUS=100 AND w.WORKFILETYPE NOT LIKE '%对公%'
+			<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+				AND COALESCE(a.jst_3210_f6236, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}  
+			</if>
+		JOIN jst_3211 b
+			ON a.jst_3210_id = b.jst_3211_FOREIGNKEY AND b.jst_3211_FOREIGNKEY IN (
+				SELECT jst_3211_FOREIGNKEY FROM jst_3211
+				<where>
+		        	<if test="workFileAmountType != null">
+		        		AND jst_3211_f5270 LIKE CONCAT('%', #{workFileAmountType}, '%')  
+		        	</if>
+				</where>
+				GROUP BY jst_3211_FOREIGNKEY
+			)
+		<where>
+			<if test="workPerson != null">
+				AND a.jst_3210_f4105 LIKE CONCAT('%', #{workPerson}, '%')
+			</if>
+			<if test="workGroup != null">
+				AND a.jst_3210_f4106 LIKE CONCAT('%', #{workGroup}, '%')  
+			</if>
+			<if test="workFilePjName != null">
+				AND a.jst_3210_f4111 LIKE CONCAT('%', #{workFilePjName}, '%')  
+			</if>
+			<if test="workFileProject != null">
+				AND a.jst_3210_f4112 LIKE CONCAT('%', #{workFileProject}, '%')  
+			</if>
+			<if test="workFileTotalAmount != null">
+				AND a.jst_3210_f4113 = #{workFileTotalAmount}
+			</if>
+			<if test="workFileAmountDesc != null">
+				AND a.jst_3210_f4109 LIKE CONCAT('%', #{workFileAmountDesc}, '%')
+			</if>
+			<if test="workDesc != null">
+				AND a.jst_3210_f4118 LIKE CONCAT('%', #{workDesc}, '%')
+			</if>
+        </where>
+        ORDER BY workfiledonetime
+   </select>
+   <select id="selectCBXG" resultMap="WorkFile">
+		SELECT 
+			w.WORKFILETYPE AS workfiletype,
+			a.jst_3210_f4103 AS workfileid,
+			COALESCE(a.jst_3210_f6236, w.WORKDONEWITHDATE) AS workfiledonetime,
+			a.jst_3210_f4105 AS workperson,
+			a.jst_3210_f4106 AS workgroup,
+			a.jst_3210_f5732 AS payee,
+			a.jst_3210_f4111 AS workfilepjname,
+			a.jst_3210_f4112 AS workfileproject,
+			b.jst_3211_f5270 AS workfileamounttype,
+			b.jst_3211_f5271 AS workfilesingleamount,
+			a.jst_3210_f4113 AS workfiletotalamount,
+			a.jst_3210_f4109 AS workfileamountdesc,
+			a.jst_3210_f4118 AS workdesc,
+			w.WORKTABLE_ID AS formid,
+			w.WORKRECORD_ID AS recordid
+		FROM 
+			jst_3210 a
+		JOIN jsf_work w
+			ON w.WORKRECORD_ID=a.jst_3210_id AND w.WF_CUREMPLOYEE_ID=a.jst_3210_owner AND w.WORKSTATUS=100 AND w.WORKFILETYPE NOT LIKE '%对私%'
+			<if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+				AND COALESCE(a.jst_3210_f6236, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}  
+			</if>
+		JOIN jst_3211 b
+			ON a.jst_3210_id = b.jst_3211_FOREIGNKEY  AND b.jst_3211_FOREIGNKEY IN (
+				SELECT jst_3211_FOREIGNKEY FROM jst_3211
+				<where>
+				    <if test="workFileAmountType != null">
+						AND jst_3211_f5270 LIKE CONCAT('%', #{workFileAmountType}, '%')  
+					</if>
+				</where>
+				GROUP BY jst_3211_FOREIGNKEY
+			)
+		<where>
+			<if test="workPerson != null">
+				AND a.jst_3210_f4105 LIKE CONCAT('%', #{workPerson}, '%')
+			</if>
+			<if test="workGroup != null">
+				AND a.jst_3210_f4106 LIKE CONCAT('%', #{workGroup}, '%')  
+			</if>
+			<if test="payee != null">
+				AND a.jst_3210_f5732 LIKE CONCAT('%', #{payee}, '%')  
+			</if>
+			<if test="workFilePjName != null">
+				AND a.jst_3210_f4111 LIKE CONCAT('%', #{workFilePjName}, '%')  
+			</if>
+			<if test="workFileProject != null">
+				AND a.jst_3210_f4112 LIKE CONCAT('%', #{workFileProject}, '%')  
+			</if>
+			<if test="workFileTotalAmount != null">
+				AND a.jst_3210_f4113 = #{workFileTotalAmount}
+			</if>
+			<if test="workFileAmountDesc != null">
+				AND a.jst_3210_f4109 LIKE CONCAT('%', #{workFileAmountDesc}, '%')
+			</if>
+			<if test="workDesc != null">
+				AND a.jst_3210_f4118 LIKE CONCAT('%', #{workDesc}, '%')
+			</if>
+        </where>
+        ORDER BY workfiledonetime
+   </select>
+</mapper>

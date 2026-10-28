@@ -1,0 +1,386 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.xft.mapper.ProjectMapper">
+    <resultMap id="ProjectDetail" type="com.ruoyi.xft.entity.ProjectDetail">
+        <result property="workFilePjName" column="workfilepjname" />
+        <result property="workFileProject" column="workfileproject" />
+        <result property="workFileAmount" column="workfileamount" />
+        <result property="workFileProjectAmout" column="workfileprojectamout" />
+    </resultMap>
+    <resultMap id="Project" type="com.ruoyi.xft.entity.Project">
+        <result property="id" column="jst_3205_id" />
+        <result property="name" column="jst_3205_f5258" />
+        <result property="idx" column="jst_3205_f5257" />
+        <result property="type" column="jst_3205_f5259" />
+    </resultMap>
+    <!-- 查询用户 -->
+    <select id="selectUser" resultType="java.lang.String">
+        SELECT empname FROM org_employee WHERE useraccounts = #{useraccounts}
+    </select>
+    <!-- 查询所有项目 -->
+    <select id="selectProject" resultMap="ProjectDetail">
+        SELECT
+        jst_3205_f5258 AS workfilepjname,
+        jst_3205_f5257 AS workfileproject,
+        jst_3205_f5264 AS workfileprojectamout,
+        jst_3205_f6254 As workGPMForecast
+        FROM jst_3205
+        <where>
+            <if test="projectList != null">
+                AND jst_3205_f5257 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+        </where>
+    </select>
+    <select id="getProject" resultMap="Project">
+        SELECT
+        jst_3205_f5258,
+        jst_3205_f5257,
+        jst_3205_f5259
+        FROM jst_3205
+    </select>
+    <select id="getProjectMap" resultMap="Project">
+        SELECT
+        jst_3205_id,
+        jst_3205_f5257,
+        jst_3205_f5258
+        FROM jst_3205
+    </select>
+    <!-- 查询所有支出 -->
+    <select id="selectAll" resultMap="ProjectDetail">
+        <!-- 查询工器具/劳保/物料 -->
+        SELECT
+        a.jst_3124_f5170 AS workfilepjname,
+        a.jst_3124_f5171 AS workfileproject,
+        SUM(b.jst_3126_f4036) AS workfileamount
+        FROM
+        jst_3124 a
+        JOIN
+        jst_3126 b ON a.jst_3124_id = b.jst_3126_FOREIGNKEY
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3124_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3124_f6228, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND a.jst_3124_f5171 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3124_owner AND w.WORKFILETYPE NOT LIKE '%FZY%'
+        </where>
+        GROUP BY a.jst_3124_f5171
+        <!-- 查询培训费用 -->
+        UNION ALL
+        SELECT
+        a.jst_3150_f5177 AS workfilepjname,
+        a.jst_3150_f5178 AS workfileproject,
+        SUM(b.jst_3151_f4407) AS workfileamount
+        FROM jst_3150 a
+        JOIN
+        jst_3151 b ON a.jst_3150_id = b.jst_3151_FOREIGNKEY
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3150_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3150_f6230, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND a.jst_3150_f5178 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3150_owner AND w.WORKFILETYPE NOT LIKE '%FZY%'
+        </where>
+        GROUP BY a.jst_3150_f5178
+        <!-- 查询业务招待费用 -->
+        UNION ALL
+        SELECT
+        a.jst_3138_f5168 AS workfilepjname,
+        a.jst_3138_f5169 AS workfileproject,
+        SUM(a.jst_3138_f4203) AS workfileamount
+        FROM jst_3138 a
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3138_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3138_f6234, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND a.jst_3138_f5169 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3138_owner AND w.WORKFILETYPE NOT LIKE '%FZY%'
+        </where>
+        GROUP BY a.jst_3138_f5169
+        <!-- 查询差旅费用 -->
+        UNION ALL
+        SELECT
+        a.jst_3209_f4111 AS workfilepjname,
+        a.jst_3209_f4112 AS workfileproject,
+        SUM(a.jst_3209_f4113) AS workfileamount
+        FROM jst_3209 a
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3209_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3209_f6231, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND a.jst_3209_f4112 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3209_owner AND w.WORKFILETYPE NOT LIKE '%FZY%'
+        </where>
+        GROUP BY a.jst_3209_f4112
+        <!-- 查询差旅费用 -->
+        UNION ALL
+        SELECT
+        a.jst_3132_f4111 AS workfilepjname,
+        a.jst_3132_f4112 AS workfileproject,
+        SUM(a.jst_3132_f4113) AS workfileamount
+        FROM jst_3132 a
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3132_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3132_f6232, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND a.jst_3132_f4112 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3132_owner AND w.WORKFILETYPE NOT LIKE '%FZY%'
+        </where>
+        GROUP BY a.jst_3132_f4112
+        <!-- 查询一般付款 -->
+        UNION ALL
+        SELECT
+        b.jst_3129_f5381 AS workfilepjname,
+        b.jst_3129_f5382 AS workfileproject,
+        SUM(b.jst_3129_f4078) AS workfileamount
+        FROM jst_3128 a
+        JOIN
+        jst_3129 b ON a.jst_3128_id = b.jst_3129_FOREIGNKEY
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3128_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3128_f6227, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND b.jst_3129_f5382 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3128_owner AND w.WORKFILETYPE NOT LIKE '%FZY%'
+        </where>
+        GROUP BY b.jst_3129_f5382
+        <!-- 查询车辆费用 -->
+        UNION ALL
+        SELECT
+        a.jst_3210_f4111 AS workfilepjname,
+        a.jst_3210_f4112 AS workfileproject,
+        SUM(b.jst_3211_f5271) AS workfileamount
+        FROM jst_3210 a
+        JOIN
+        jst_3211 b ON a.jst_3210_id = b.jst_3211_FOREIGNKEY
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3210_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3210_f6236, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND a.jst_3210_f4112 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3210_owner AND w.WORKFILETYPE NOT LIKE '%FZY%'
+        </where>
+        GROUP BY a.jst_3210_f4112
+        <!-- 查询费用报销 -->
+        UNION ALL
+        SELECT
+        b.jst_3131_f4097 AS workfilepjname,
+        b.jst_3131_f5166 AS workfileproject,
+        SUM(b.jst_3131_f4101) AS workfileamount
+        FROM jst_3130 a
+        JOIN
+        jst_3131 b ON a.jst_3130_id = b.jst_3131_FOREIGNKEY
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3130_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3130_f6229, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND b.jst_3131_f5166 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3130_owner AND w.WORKFILETYPE NOT LIKE '%FZY%'
+        </where>
+        GROUP BY b.jst_3131_f5166
+        <!-- 查询工程付款 -->
+        UNION ALL
+        SELECT
+        b.jst_3206_f4034 AS workfilepjname,
+        b.jst_3206_f4035 AS workfileproject,
+        SUM(b.jst_3206_f4036) AS workfileamount
+        FROM
+        jst_3207 a
+        JOIN
+        jst_3206 b ON a.jst_3207_id = b.jst_3206_FOREIGNKEY
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3207_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3207_f6235, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND b.jst_3206_f4035 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS = 100 AND w.WF_CUREMPLOYEE_ID = a.jst_3207_owner
+        </where>
+        GROUP BY b.jst_3206_f4035
+        <!-- 查询人员费用 -->
+        UNION ALL
+        SELECT
+        a.jst_3196_f5817 AS workFilePjName,
+        a.jst_3196_f5182 AS workFileProject,
+        SUM(a.jst_3196_f5822) AS workFileAmount
+        FROM
+        jst_3196 a
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND a.jst_3196_f4960 BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND a.jst_3196_f5182 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+        </where>
+        GROUP BY a.jst_3196_f5182
+    </select>
+    <!-- 查询员工借款 -->
+    <select id="selectGCJK" resultMap="ProjectDetail">
+        SELECT
+        a.jst_3153_f5513 AS workfilepjname,
+        a.jst_3153_f5514 AS workfileproject,
+        SUM(a.jst_3153_f4165) AS workfileamount
+        FROM
+        jst_3153 a
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3153_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3153_f6233, w.WORKDONEWITHDATE) BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND a.jst_3153_f5514 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS = 100 AND w.WF_CUREMPLOYEE_ID = a.jst_3153_owner
+        </where>
+        GROUP BY a.jst_3153_f5514
+    </select>
+    <!-- 查询到款通知 -->
+    <select id="selectDKTZ" resultMap="ProjectDetail">
+        SELECT
+        b.jst_3154_f4412 AS workfilepjname,
+        b.jst_3154_f4411 AS workfileproject,
+        SUM(b.jst_3154_f4413) AS workfileamount
+        FROM jst_3137 a
+        JOIN
+        jst_3154 b ON a.jst_3137_id = b.jst_3154_FOREIGNKEY
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3137_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND a.jst_3137_f4189 BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND b.jst_3154_f4411 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3137_owner
+        </where>
+        GROUP BY b.jst_3154_f4411
+    </select>
+    <!-- 查询开票申请 -->
+    <select id="selectKPSQ" resultMap="ProjectDetail">
+        SELECT
+        b.jst_3141_f4245 AS workfilepjname,
+        b.jst_3141_f4899 AS workfileproject,
+        SUM(b.jst_3141_f4246) AS workfileamount
+        FROM jst_3139 a
+        JOIN
+        jst_3141 b ON a.jst_3139_id = b.jst_3141_FOREIGNKEY
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3139_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND w.WORKDONEWITHDATE BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND b.jst_3141_f4899 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3139_owner
+        </where>
+        GROUP BY b.jst_3141_f4899
+    </select>
+    <!-- 查询发票作废申请 -->
+    <select id="selectFPZF" resultMap="ProjectDetail">
+        SELECT
+        b.jst_3312_f4245 AS workfilepjname,
+        b.jst_3312_f4899 AS workfileproject,
+        SUM(b.jst_3312_f4246) AS workfileamount
+        FROM jst_3143 a
+        JOIN
+        jst_3312 b ON a.jst_3143_id = b.jst_3312_FOREIGNKEY
+        JOIN
+        jsf_work w ON w.WORKRECORD_ID = a.jst_3143_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND w.WORKDONEWITHDATE BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND b.jst_3312_f4899 IN
+                <foreach item="project" collection="projectList" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+            AND w.WORKSTATUS=100 AND w.WF_CUREMPLOYEE_ID=a.jst_3143_owner
+        </where>
+        GROUP BY b.jst_3312_f4899
+    </select>
+</mapper>

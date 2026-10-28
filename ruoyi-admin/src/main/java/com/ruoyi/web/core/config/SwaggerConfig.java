@@ -49,7 +49,6 @@ public class SwaggerConfig
     /**
      * 添加摘要信息
      */
-    @SuppressWarnings("static-access")
     public Info getApiInfo()
     {
         return new Info()

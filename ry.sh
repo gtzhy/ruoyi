@@ -1,5 +1,13 @@
 #!/bin/sh
 # ./ry.sh start 启动 stop 停止 restart 重启 status 状态
+JDK_HOME=/opt
+export JDK_HOME
+# 设置JAVA_HOME
+JAVA_HOME=$JDK_HOME/jdk
+export JAVA_HOME
+echo "JAVA_HOME is set to $JAVA_HOME"
+export PATH=$JAVA_HOME/bin:$PATH
+
 AppName=ruoyi-admin.jar
 
 # JVM参数

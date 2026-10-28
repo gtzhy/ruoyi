@@ -56,8 +56,7 @@ public @interface Excel
     /**
      * BigDecimal 舍入规则 默认:BigDecimal.ROUND_HALF_EVEN
      */
-    @SuppressWarnings("deprecation")
-	public int roundingMode() default BigDecimal.ROUND_HALF_EVEN;
+    public int roundingMode() default BigDecimal.ROUND_HALF_EVEN;
 
     /**
      * 导出时在excel中每个列的高度
@@ -83,11 +82,6 @@ public @interface Excel
      * 提示信息
      */
     public String prompt() default "";
-
-    /**
-     * 是否允许内容换行 
-     */
-    public boolean wrapText() default false;
 
     /**
      * 设置只能选择不能输入的列内容.

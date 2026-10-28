@@ -1,0 +1,109 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.xft.mapper.TaskMapper">
+    <resultMap id="WorkFile"
+               type="com.ruoyi.xft.entity.WorkFile">
+        <result property="workFileType" column="workfiletype" />
+        <result property="workFileId" column="workfileid" />
+        <result property="workFileDoneTime" column="workfiledonetime" />
+        <result property="workPerson" column="workperson" />
+        <result property="workGroup" column="workgroup" />
+        <result property="workFilePjName" column="workFilepjname" />
+        <result property="workFileProject" column="workfileproject" />
+        <result property="workFileAmountType" column="workfileamounttype" />
+        <result property="workFileSingleAmount" column="workfilesingleamount" />
+        <result property="workFileTotalAmount" column="workfiletotalamount" />
+        <result property="workFileAmountDesc" column="workfileamountdesc" />
+        <result property="workDesc" column="workdesc" />
+    </resultMap>
+    <resultMap id="ProjectDetail" type="com.ruoyi.xft.entity.ProjectDetail">
+        <result property="workFilePjName" column="workfilepjname" />
+        <result property="workFileProject" column="workfileproject" />
+        <result property="workFileAmount" column="workfileamount" />
+        <result property="workGPMForecast" column="workGPMForecast" />
+    </resultMap>
+    <!-- 返回结果类型如果用的是 resultType，里面可以是map，也就是键值对，键名就是列名或是列别名；也可以是其他对象，这里用了UserBean接收结果，那么查询的列别名必须和UserBean的属性名保持一致-->
+    <select id="selectTime" resultType="java.time.LocalDateTime">
+        select time from xft_sync_time where type = #{type}
+    </select>
+    <select id="getUnSync" resultType="com.ruoyi.xft.entity.BillInfo">
+        select
+            id,
+            bill_id as billId,
+            amount,
+            pay_finish_time as payFinishTime,
+            pay_company_name as payCompanyName,
+            is_detail as isDetail
+        from xft_bill_info where is_detail = 0
+    </select>
+    <select id="selectEpenses" resultMap="WorkFile">
+        SELECT
+            a.work_file_type AS workfiletype,
+            a.work_file_id AS workfileid,
+            b.pay_finish_time AS workfiledonetime,
+            a.work_person AS workperson,
+            a.work_group AS workgroup,
+            a.work_file_pj_name AS workfilepjname,
+            a.work_file_project AS workfileproject,
+            a.work_file_amount_type AS workfileamounttype,
+            a.work_file_single_amount AS workfilesingleamount,
+            a.work_file_total_amount AS workfiletotalamount,
+            a.work_file_amount_desc AS workfileamountdesc,
+            a.work_desc AS workdesc
+        FROM xft_bill_detail a, xft_bill_info b
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND b.pay_finish_time BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND a.work_file_project LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND a.work_file_id = b.bill_id
+        </where>
+    </select>
+    <select id="sumProjectPay" resultMap="ProjectDetail">
+        SELECT
+            a.work_file_pj_name AS workfilepjname,
+            a.work_file_project AS workfileproject,
+            SUM(a.work_file_total_amount) AS workfileamount
+        FROM xft_bill_detail a
+        JOIN
+            xft_bill_info b ON a.work_file_id = b.bill_id
+        <where>
+            <if test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND b.pay_finish_time BETWEEN #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="projectList != null">
+                AND a.work_file_pj_name IN
+                <foreach item="project" collection="projectArr" open="(" separator="," close=")">
+                    #{project}
+                </foreach>
+            </if>
+        </where>
+        GROUP BY a.work_file_pj_name, a.work_file_project
+    </select>
+    <update id="updateTime">
+        update xft_sync_time set time = #{endOfDay} where type = #{taskName}
+    </update>
+    <insert id="insertBillList">
+        insert into xft_bill_info (bill_id, amount, pay_finish_time, pay_company_name, bill_type, is_detail) values
+        <foreach collection="billList" item="bill" separator=",">
+            (#{bill.billId}, #{bill.amount}, #{bill.payFinishTime}, #{bill.payCompanyName}, #{bill.billType}, #{bill.isDetail})
+        </foreach>
+    </insert>
+    <insert id="insertBillDetail">
+        insert into xft_bill_detail (work_file_type, work_file_id, work_person, work_group, work_file_pj_name, work_file_project, work_file_amount_type, work_file_single_amount, work_file_total_amount, work_file_amount_desc, work_desc) values
+        <foreach collection="workFileList" item="workFile" separator=",">
+            (#{workFile.workFileType}, #{workFile.workFileId}, #{workFile.workPerson}, #{workFile.workGroup}, #{workFile.workFilePjName}, #{workFile.workFileProject}, #{workFile.workFileAmountType}, #{workFile.workFileSingleAmount}, #{workFile.workFileTotalAmount}, #{workFile.workFileAmountDesc}, #{workFile.workDesc})
+        </foreach>
+    </insert>
+    <insert id="updateInfo">
+        UPDATE xft_bill_info
+        SET is_detail = 1
+        WHERE id = #{billInfo.id}
+    </insert>
+</mapper>

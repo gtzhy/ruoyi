@@ -8,12 +8,17 @@ package com.ruoyi.common.enums;
 public enum DataSourceType
 {
     /**
-     * 主库
+     * 主库 eshan_ruoyi
      */
     MASTER,
 
     /**
-     * 从库
+     * 从库 jsdb
      */
-    SLAVE
+    SLAVE,
+
+    /**
+     * 从库2 eshan
+     */
+    SLAVE2
 }

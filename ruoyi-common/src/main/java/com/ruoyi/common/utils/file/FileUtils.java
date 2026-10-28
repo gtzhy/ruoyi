@@ -11,14 +11,13 @@ import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.ArrayUtils;
 import com.ruoyi.common.config.RuoYiConfig;
-import com.ruoyi.common.constant.Constants;
 import com.ruoyi.common.utils.DateUtils;
 import com.ruoyi.common.utils.StringUtils;
 import com.ruoyi.common.utils.uuid.IdUtils;
+import org.apache.commons.io.FilenameUtils;
 
 /**
  * 文件处理工具类
@@ -102,17 +101,6 @@ public class FileUtils
             IOUtils.close(fos);
         }
         return FileUploadUtils.getPathFileName(uploadDir, pathName);
-    }
-
-    /**
-     * 移除路径中的请求前缀片段
-     * 
-     * @param filePath 文件路径
-     * @return 移除后的文件路径
-     */
-    public static String stripPrefix(String filePath)
-    {
-        return StringUtils.substringAfter(filePath, Constants.RESOURCE_PREFIX);
     }
 
     /**
@@ -208,7 +196,6 @@ public class FileUtils
      *
      * @param response 响应对象
      * @param realFileName 真实文件名
-     * @return
      */
     public static void setAttachmentResponseHeader(HttpServletResponse response, String realFileName) throws UnsupportedEncodingException
     {
@@ -222,7 +209,9 @@ public class FileUtils
                 .append("utf-8''")
                 .append(percentEncodedFileName);
 
+        response.addHeader("Access-Control-Expose-Headers", "Content-Disposition,download-filename");
         response.setHeader("Content-disposition", contentDispositionValue.toString());
+        response.setHeader("download-filename", percentEncodedFileName);
     }
 
     /**

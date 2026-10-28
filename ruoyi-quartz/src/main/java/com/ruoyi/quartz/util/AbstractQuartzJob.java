@@ -3,6 +3,7 @@ package com.ruoyi.quartz.util;
 import java.util.Date;
 import org.quartz.Job;
 import org.quartz.JobExecutionContext;
+import org.quartz.JobExecutionException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.ruoyi.common.constant.Constants;
@@ -30,7 +31,7 @@ public abstract class AbstractQuartzJob implements Job
     private static ThreadLocal<Date> threadLocal = new ThreadLocal<>();
 
     @Override
-    public void execute(JobExecutionContext context)
+    public void execute(JobExecutionContext context) throws JobExecutionException
     {
         SysJob sysJob = new SysJob();
         BeanUtils.copyBeanProp(sysJob, context.getMergedJobDataMap().get(ScheduleConstants.TASK_PROPERTIES));
@@ -77,8 +78,8 @@ public abstract class AbstractQuartzJob implements Job
         sysJobLog.setJobGroup(sysJob.getJobGroup());
         sysJobLog.setInvokeTarget(sysJob.getInvokeTarget());
         sysJobLog.setStartTime(startTime);
-        sysJobLog.setEndTime(new Date());
-        long runMs = sysJobLog.getEndTime().getTime() - sysJobLog.getStartTime().getTime();
+        sysJobLog.setStopTime(new Date());
+        long runMs = sysJobLog.getStopTime().getTime() - sysJobLog.getStartTime().getTime();
         sysJobLog.setJobMessage(sysJobLog.getJobName() + " 总共耗时：" + runMs + "毫秒");
         if (e != null)
         {

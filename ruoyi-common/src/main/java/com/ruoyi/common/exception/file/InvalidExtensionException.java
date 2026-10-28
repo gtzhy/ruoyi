@@ -3,7 +3,7 @@ package com.ruoyi.common.exception.file;
 import java.util.Arrays;
 
 /**
- * 文件上传无效扩展名异常类
+ * 文件上传 误异常类
  * 
  * @author ruoyi
  */
@@ -67,7 +67,7 @@ public class InvalidExtensionException extends FileUploadException
             super(allowedExtension, extension, filename);
         }
     }
-    
+
     public static class InvalidVideoExtensionException extends InvalidExtensionException
     {
         private static final long serialVersionUID = 1L;

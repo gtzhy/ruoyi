@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.xft.mapper.LeaveMapper">
+    <select id="selectUser" resultType="Map">
+        SELECT
+        a.INTOCOMPANYDATE AS probation,
+        a.zhuanzhengdate AS regular
+        FROM org_employee a
+        <where>
+            a.EMP_ID = #{user}
+        </where>
+    </select>
+    <select id="selectJoinTime" resultType="Map">
+        SELECT
+        a.jst_3021_f5610 AS probation,
+        a.jst_3021_f5411 AS regular
+        FROM jst_3021 a
+        JOIN jsf_work w ON w.WORKRECORD_ID=a.jst_3021_id AND w.WF_CUREMPLOYEE_ID=a.jst_3021_owner AND w.WORKSTATUS=100
+        <where>
+            a.jst_3021_f3248 = #{workPerson}
+        </where>
+    </select>
+    <select id="selectLeaveTime" resultType="java.lang.Integer">
+        SELECT
+        COUNT(*)
+        FROM jst_3209 a
+        JOIN jsf_work w
+        ON w.WORKRECORD_ID=a.jst_3209_id AND w.WF_CUREMPLOYEE_ID=a.jst_3209_owner AND w.WORKSTATUS=100
+        <where>
+            a.jst_3209_f5179 = '探亲假（无住宿报销）'
+            AND a.jst_3209_f4107 = #{workPerson}
+            AND a.jst_3209_f4104 > #{startOfYear}
+        </where>
+    </select>
+    <select id="selectNoneMessage" resultType="Map">
+        SELECT jst_3209_id, jst_3209_f4107, jst_3209_f4109 FROM jst_3209 WHERE jst_3209_f4109 LIKE '%无数据%'
+    </select>
+    <select id="queryForMap" resultType="Map">
+        SELECT emp_id, INTOCOMPANYDATE, zhuanzhengdate FROM org_employee WHERE emp_id = #{empId}
+    </select>
+</mapper>

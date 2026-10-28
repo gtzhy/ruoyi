@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.xft.mapper.UserMapper">
+    <!-- 返回结果类型如果用的是 resultType，里面可以是map，也就是键值对，键名就是列名或是列别名；也可以是其他对象，这里用了UserBean接收结果，那么查询的列别名必须和UserBean的属性名保持一致-->
+    <select id="selectByUsername" resultType="com.ruoyi.xft.entity.User">
+        select * from user where username = #{username}
+    </select>
+
+    <select id="selectUserProject" resultType="String">
+        select project from user_project where user = #{username}
+    </select>
+
+    <select id="getTime" resultType="java.time.LocalDateTime">
+        select time from refresh_time where id = 1;
+    </select>
+
+    <select id="getBirthList" resultType="map">
+        SELECT empname, useraccounts FROM org_employee
+        WHERE DATE_FORMAT(EMPBIRTH, '%m%d') = #{today};
+    </select>
+
+</mapper>

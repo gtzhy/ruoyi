@@ -1,0 +1,537 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ruoyi.xft.mapper.SelectMapper">
+    <resultMap id="ProjectDetail" type="com.ruoyi.xft.entity.ProjectDetail">
+        <result property="workFilePjName" column="workfilepjname" />
+        <result property="workFileProject" column="workfileproject" />
+        <result property="workFileProjectAmout" column="workfileprojectamout" />
+    </resultMap>
+    <resultMap id="WorkFile"
+               type="com.ruoyi.xft.entity.WorkFile">
+        <result property="workFileType" column="workfiletype" />
+        <result property="workFileId" column="workfileid" />
+        <result property="workFileDoneTime" column="workfiledonetime" />
+        <result property="workPerson" column="workperson" />
+        <result property="workGroup" column="workgroup" />
+        <result property="workFilePjName" column="workFilepjname" />
+        <result property="workFileProject" column="workfileproject" />
+        <result property="workFileAmountType" column="workfileamounttype" />
+        <result property="workFileSingleAmount" column="workfilesingleamount" />
+        <result property="workFileTotalAmount" column="workfiletotalamount" />
+        <result property="workFileAmountDesc" column="workfileamountdesc" />
+        <result property="workDesc" column="workdesc" />
+        <result property="formId" column="formid" />
+        <result property="recordId" column="recordid" />
+    </resultMap>
+    <!-- 查询工器具/劳保/物料 -->
+    <select id="selectBXLB" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3124_f3983 AS workfileid,
+        COALESCE(a.jst_3124_f6228, w.WORKDONEWITHDATE) AS workfiledonetime,
+        a.jst_3124_f3985 AS workperson,
+        a.jst_3124_f3986 AS workgroup,
+        a.jst_3124_f5170 AS workfilepjname,
+        a.jst_3124_f5171 AS workfileproject,
+        b.jst_3126_f5172 AS workfileamounttype,
+        b.jst_3126_f4036 AS workfilesingleamount,
+        a.jst_3124_f3993 AS workfiletotalamount,
+        a.jst_3124_f3990 AS workfileamountdesc,
+        a.jst_3124_f3995 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3124 a, jst_3126 b, jsf_work w
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3124_f6228, w.WORKDONEWITHDATE) BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND a.jst_3124_f5171 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND a.jst_3124_id = b.jst_3126_FOREIGNKEY AND
+            w.WORKRECORD_ID=a.jst_3124_id AND w.WORKSTATUS=100 AND
+            w.WF_CUREMPLOYEE_ID=a.jst_3124_owner AND w.WORKFILETYPE NOT LIKE
+            '%FZY%'
+        </where>
+    </select>
+    <!-- 查询培训费用 -->
+    <select id="selectPXBX" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3150_f4080 AS workfileid,
+        COALESCE(a.jst_3150_f6230, w.WORKDONEWITHDATE) AS workfiledonetime,
+        a.jst_3150_f4082 AS workperson,
+        a.jst_3150_f4083 AS workgroup,
+        a.jst_3150_f5177 AS workfilepjname,
+        a.jst_3150_f5178 AS workfileproject,
+        b.jst_3151_f4405 AS workfileamounttype,
+        b.jst_3151_f4407 AS workfilesingleamount,
+        a.jst_3150_f4084 AS workfiletotalamount,
+        b.jst_3151_f4417 AS workfileamountdesc,
+        a.jst_3150_f4090 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3150 a, jst_3151 b, jsf_work w
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3150_f6230, w.WORKDONEWITHDATE) BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND a.jst_3150_f5178 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND a.jst_3150_id = b.jst_3151_FOREIGNKEY AND
+            w.WORKRECORD_ID=a.jst_3150_id AND w.WORKSTATUS=100 AND
+            w.WF_CUREMPLOYEE_ID=a.jst_3150_owner AND w.WORKFILETYPE NOT LIKE
+            '%FZY%'
+        </where>
+    </select>
+    <!-- 查询业务招待费用 -->
+    <select id="selectYWZD" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3138_f4198 AS workfileid,
+        COALESCE(a.jst_3138_f6234, w.WORKDONEWITHDATE) AS workfiledonetime,
+        a.jst_3138_f4201 AS workperson,
+        a.jst_3138_f4200 AS workgroup,
+        a.jst_3138_f5168 AS workfilepjname,
+        a.jst_3138_f5169 AS workfileproject,
+        a.jst_3138_f4202 AS workfileamounttype,
+        a.jst_3138_f4203 AS workfilesingleamount,
+        a.jst_3138_f4203 AS workfiletotalamount,
+        a.jst_3138_f4204 AS workfileamountdesc,
+        a.jst_3138_f4207 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3138 a, jsf_work w
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3138_f6234, w.WORKDONEWITHDATE) BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND a.jst_3138_f5169 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND w.WORKRECORD_ID=a.jst_3138_id AND w.WORKSTATUS=100 AND
+            w.WF_CUREMPLOYEE_ID=a.jst_3138_owner AND w.WORKFILETYPE NOT LIKE
+            '%FZY%'
+        </where>
+    </select>
+    <!-- 查询差旅费用 -->
+    <select id="selectXMCL" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3209_f4103 AS workfileid,
+        COALESCE(a.jst_3209_f6231, w.WORKDONEWITHDATE) AS workfiledonetime,
+        a.jst_3209_f4105 AS workperson,
+        a.jst_3209_f4106 AS workgroup,
+        a.jst_3209_f4111 AS workfilepjname,
+        a.jst_3209_f4112 AS workfileproject,
+        a.jst_3209_f5179 AS workfileamounttype,
+        a.jst_3209_f4113 AS workfilesingleamount,
+        a.jst_3209_f4113 AS workfiletotalamount,
+        a.jst_3209_f4109 AS workfileamountdesc,
+        a.jst_3209_f4118 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3209 a,jsf_work w
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3209_f6231, w.WORKDONEWITHDATE) BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND a.jst_3209_f4112 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND w.WORKRECORD_ID=a.jst_3209_id AND w.WORKSTATUS=100 AND
+            w.WF_CUREMPLOYEE_ID=a.jst_3209_owner AND w.WORKFILETYPE NOT LIKE
+            '%FZY%'
+        </where>
+    </select>
+    <!-- 查询差旅费用 -->
+    <select id="selectCLBX" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3132_f4103 AS workfileid,
+        COALESCE(a.jst_3132_f6232, w.WORKDONEWITHDATE) AS workfiledonetime,
+        a.jst_3132_f4105 AS workperson,
+        a.jst_3132_f4106 AS workgroup,
+        a.jst_3132_f4111 AS workfilepjname,
+        a.jst_3132_f4112 AS workfileproject,
+        '差旅费' AS workfileamounttype,
+        a.jst_3132_f4113 AS workfilesingleamount,
+        a.jst_3132_f4113 AS workfiletotalamount,
+        a.jst_3132_f4109 AS workfileamountdesc,
+        a.jst_3132_f4118 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3132 a, jsf_work w
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3132_f6232, w.WORKDONEWITHDATE) BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND a.jst_3132_f4112 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND w.WORKRECORD_ID=a.jst_3132_id AND w.WORKSTATUS=100 AND
+            w.WF_CUREMPLOYEE_ID=a.jst_3132_owner AND w.WORKFILETYPE NOT LIKE
+            '%FZY%'
+        </where>
+    </select>
+    <!-- 查询一般付款 -->
+    <select id="selectYBFK" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3128_f4058 AS workfileid,
+        COALESCE(a.jst_3128_f6227, w.WORKDONEWITHDATE) AS workfiledonetime,
+        a.jst_3128_f4060 AS workperson,
+        a.jst_3128_f4061 AS workgroup,
+        b.jst_3129_f5381 AS workfilepjname,
+        b.jst_3129_f5382 AS workfileproject,
+        b.jst_3129_f4077 AS workfileamounttype,
+        b.jst_3129_f4078 AS workfilesingleamount,
+        a.jst_3128_f4068 AS workfiletotalamount,
+        a.jst_3128_f4065 AS workfileamountdesc,
+        a.jst_3128_f4070 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3128 a, jst_3129 b, jsf_work w
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3128_f6227, w.WORKDONEWITHDATE) BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND b.jst_3129_f5382 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND a.jst_3128_id = b.jst_3129_FOREIGNKEY AND
+            w.WORKRECORD_ID=a.jst_3128_id AND w.WORKSTATUS=100 AND
+            w.WF_CUREMPLOYEE_ID=a.jst_3128_owner AND w.WORKFILETYPE NOT LIKE
+            '%FZY%'
+        </where>
+    </select>
+    <!-- 查询车辆费用 -->
+    <select id="selectCBX" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3210_f4103 AS workfileid,
+        COALESCE(a.jst_3210_f6236, w.WORKDONEWITHDATE) AS workfiledonetime,
+        a.jst_3210_f4105 AS workperson,
+        a.jst_3210_f4106 AS workgroup,
+        a.jst_3210_f4111 AS workfilepjname,
+        a.jst_3210_f4112 AS workfileproject,
+        b.jst_3211_f5270 AS workfileamounttype,
+        b.jst_3211_f5271 AS workfilesingleamount,
+        a.jst_3210_f4113 AS workfiletotalamount,
+        a.jst_3210_f4109 AS workfileamountdesc,
+        a.jst_3210_f4118 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3210 a, jst_3211 b, jsf_work w
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3210_f6236, w.WORKDONEWITHDATE) BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND a.jst_3210_f4112 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND a.jst_3210_id = b.jst_3211_FOREIGNKEY AND
+            w.WORKRECORD_ID=a.jst_3210_id AND w.WORKSTATUS=100 AND
+            w.WF_CUREMPLOYEE_ID=a.jst_3210_owner AND w.WORKFILETYPE NOT LIKE
+            '%FZY%'
+        </where>
+    </select>
+    <!-- 查询费用报销 -->
+    <select id="selectFYBX" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3130_f4080 AS workfileid,
+        COALESCE(a.jst_3130_f6229, w.WORKDONEWITHDATE) AS workfiledonetime,
+        a.jst_3130_f4082 AS workperson,
+        a.jst_3130_f4083 AS workgroup,
+        b.jst_3131_f4097 AS workfilepjname,
+        b.jst_3131_f5166 AS workfileproject,
+        b.jst_3131_f5254 AS workfileamounttype,
+        b.jst_3131_f4101 AS workfilesingleamount,
+        a.jst_3130_f4084 AS workfiletotalamount,
+        a.jst_3130_f4086 AS workfileamountdesc,
+        a.jst_3130_f4090 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3130 a, jst_3131 b, jsf_work w
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3130_f6229, w.WORKDONEWITHDATE) BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND b.jst_3131_f5166 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND a.jst_3130_id = b.jst_3131_FOREIGNKEY AND
+            w.WORKRECORD_ID=a.jst_3130_id AND w.WORKSTATUS=100 AND
+            w.WF_CUREMPLOYEE_ID=a.jst_3130_owner AND w.WORKFILETYPE NOT LIKE
+            '%FZY%'
+        </where>
+    </select>
+    <!-- 查询工程付款 -->
+    <select id="selectGCFK" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3207_f3983 AS workfileid,
+        COALESCE(a.jst_3207_f6235, w.WORKDONEWITHDATE) AS workfiledonetime,
+        a.jst_3207_f3985 AS workperson,
+        a.jst_3207_f3986 AS workgroup,
+        b.jst_3206_f4034 AS workfilepjname,
+        b.jst_3206_f4035 AS workfileproject,
+        a.jst_3207_f3990 AS workfileamounttype,
+        b.jst_3206_f4036 AS workfilesingleamount,
+        a.jst_3207_f3993 AS workfiletotalamount,
+        b.jst_3206_f5172 AS workfileamountdesc,
+        a.jst_3207_f3995 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM
+        jst_3207 a, jst_3206 b, jsf_work w
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3207_f6235, w.WORKDONEWITHDATE) BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND b.jst_3206_f4035 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND a.jst_3207_id = b.jst_3206_FOREIGNKEY AND w.WORKRECORD_ID =
+            a.jst_3207_id AND w.WORKSTATUS = 100 AND w.WF_CUREMPLOYEE_ID =
+            a.jst_3207_owner
+        </where>
+    </select>
+    <!-- 查询人员费用 -->
+    <select id="selectZYGZ" resultType="Map">
+        SELECT
+        a.jst_3196_f5823 AS workFileType,
+        a.jst_3196_f5815 AS workFileId,
+        a.jst_3196_f4960 AS workFileDoneTime,
+        a.jst_3196_f5816 AS workPerson,
+        a.jst_3196_f5182 AS workGroup,
+        a.jst_3196_f5817 AS workFilePjName,
+        a.jst_3196_f5818 AS workFileProject,
+        a.jst_3196_f5819 AS workFileAmountType,
+        a.jst_3196_f4967 AS workFileSingleAmount,
+        a.jst_3196_f5820 AS workFileTotalAmount,
+        a.jst_3196_f5821 AS workFileAmountDesc,
+        a.jst_3196_f5822 AS workDesc,
+        '997' AS formId,
+        a.jst_3196_id AS recordId
+        FROM
+        jst_3196 a
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND a.jst_3196_f4960 BETWEEN #{workFileDoneStartTime} AND
+                #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND a.jst_3196_f5182 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+        </where>
+    </select>
+    <!-- 查询员工借款 -->
+    <select id="selectGCJK" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3153_f4161 AS workfileid,
+        COALESCE(a.jst_3153_f6233, w.WORKDONEWITHDATE) AS workfiledonetime,
+        a.jst_3153_f4161 AS workperson,
+        a.jst_3153_f4162 AS workgroup,
+        a.jst_3153_f5513 AS workfilepjname,
+        a.jst_3153_f5514 AS workfileproject,
+        '员工借款' AS workfileamounttype,
+        a.jst_3153_f4165 AS workfilesingleamount,
+        a.jst_3153_f4165 AS workfiletotalamount,
+        a.jst_3153_f4167 AS workfileamountdesc,
+        a.jst_3153_f4170 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM
+        jst_3153 a, jsf_work w
+        <where>
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND COALESCE(a.jst_3153_f6233, w.WORKDONEWITHDATE) BETWEEN
+                #{workFileDoneStartTime} AND #{workFileDoneEndTime}
+            </if>
+            <if test="workFileProject != null">
+                AND a.jst_3153_f5514 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND w.WORKRECORD_ID = a.jst_3153_id AND w.WORKSTATUS = 100 AND
+            w.WF_CUREMPLOYEE_ID = a.jst_3153_owner
+        </where>
+    </select>
+    <!-- 查询开票申请 -->
+    <select id="selectKPSQ" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3139_f4213 AS workfileid,
+        w.WORKDONEWITHDATE AS workfiledonetime,
+        a.jst_3139_f4219 AS workperson,
+        a.jst_3139_f4223 AS workgroup,
+        b.jst_3141_f4245 AS workfilepjname,
+        b.jst_3141_f4899 AS workfileproject,
+        a.jst_3139_f4217 AS workfileamounttype,
+        b.jst_3141_f4246 AS workfilesingleamount,
+        a.jst_3139_f4226 AS workfiletotalamount,
+        b.jst_3141_f4416 AS workfileamountdesc,
+        a.jst_3139_f4228 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3139 a, jst_3141 b, jsf_work w
+        <where>
+            <if test="workFileProject != null">
+                AND b.jst_3141_f4899 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND a.jst_3139_id = b.jst_3141_FOREIGNKEY
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND w.WORKDONEWITHDATE BETWEEN #{workFileDoneStartTime} AND
+                #{workFileDoneEndTime}
+            </if>
+            AND w.WORKRECORD_ID=a.jst_3139_id
+            AND w.WORKSTATUS=100
+            AND w.WF_CUREMPLOYEE_ID=a.jst_3139_owner
+        </where>
+    </select>
+    <!-- 查询发票作废申请 -->
+    <select id="selectFPZF" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        a.jst_3143_f4253 AS workfileid,
+        w.WORKDONEWITHDATE AS workfiledonetime,
+        a.jst_3143_f4256 AS workperson,
+        a.jst_3143_f4255 AS workgroup,
+        b.jst_3312_f4245 AS workfilepjname,
+        b.jst_3312_f4899 AS workfileproject,
+        a.jst_3143_f4259 AS workfileamounttype,
+        b.jst_3312_f4246 AS workfilesingleamount,
+        a.jst_3143_f5385 AS workfiletotalamount,
+        a.jst_3143_f4260 AS workfileamountdesc,
+        a.jst_3143_f4263 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3143 a, jst_3312 b, jsf_work w
+        <where>
+            <if test="workFileProject != null">
+                AND b.jst_3312_f4899 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND a.jst_3143_id = b.jst_3312_FOREIGNKEY
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND a.jst_3143_f4257 BETWEEN #{workFileDoneStartTime} AND
+                #{workFileDoneEndTime}
+            </if>
+            AND w.WORKRECORD_ID=a.jst_3143_id
+            AND w.WORKSTATUS=100
+            AND w.WF_CUREMPLOYEE_ID=a.jst_3143_owner
+        </where>
+    </select>
+    <!-- 查询到款通知 -->
+    <select id="selectDKTZ" resultMap="WorkFile">
+        SELECT
+        w.WORKFILETYPE AS workfiletype,
+        w.WORKRECORD_ID AS workfileid,
+        a.jst_3137_f4189 AS workfiledonetime,
+        a.jst_3137_f4190 AS workperson,
+        a.jst_3137_f5648 AS workgroup,
+        b.jst_3154_f4412 AS workfilepjname,
+        b.jst_3154_f4411 AS workfileproject,
+        a.jst_3137_f4193 AS workfileamounttype,
+        b.jst_3154_f4413 AS workfilesingleamount,
+        a.jst_3137_f4414 AS workfiletotalamount,
+        a.jst_3137_f4194 AS workfileamountdesc,
+        a.jst_3137_f4196 AS workdesc,
+        w.WORKTABLE_ID AS formid,
+        w.WORKRECORD_ID AS recordid
+        FROM jst_3137 a, jst_3154 b, jsf_work w
+        <where>
+            <if test="workFileProject != null">
+                AND b.jst_3154_f4411 LIKE CONCAT('%', #{workFileProject}, '%')
+            </if>
+            AND a.jst_3137_id = b.jst_3154_FOREIGNKEY
+            <if
+                    test="workFileDoneStartTime != null and workFileDoneEndTime != null">
+                AND a.jst_3137_f4189 BETWEEN #{workFileDoneStartTime} AND
+                #{workFileDoneEndTime}
+            </if>
+            AND w.WORKRECORD_ID=a.jst_3137_id
+            AND w.WORKSTATUS=100
+            AND w.WF_CUREMPLOYEE_ID=a.jst_3137_owner
+        </where>
+    </select>
+    <!-- 查询在途费用 -->
+    <select id="expensesInTransit" resultType="java.lang.Double">
+        SELECT ROUND(IFNULL(SUM(a.project_amount),0),2) as amount FROM (
+        SELECT `jst_3124`.`jst_3124_f5171` AS
+        `project_number`,`jst_3124`.`jst_3124_f5170` AS
+        `project_name`,`jst_3124`.`jst_3124_f3993` AS
+        `project_amount`,`jst_3124`.`jst_3124_id` AS `project_id` FROM
+        `jst_3124` UNION ALL SELECT `jst_3131`.`jst_3131_f5166` AS
+        `jst_3131_f5166`,`jst_3131`.`jst_3131_f4097` AS
+        `jst_3131_f4097`,`jst_3131`.`jst_3131_f4101` AS
+        `jst_3131_f4101`,`jst_3131`.`jst_3131_FOREIGNKEY` AS
+        `jst_3131_FOREIGNKEY` FROM `jst_3131` UNION ALL SELECT
+        `jst_3210`.`jst_3210_f4112` AS
+        `jst_3210_f4112`,`jst_3210`.`jst_3210_f4111` AS
+        `jst_3210_f4111`,`jst_3210`.`jst_3210_f4113` AS
+        `jst_3210_f4113`,`jst_3210`.`jst_3210_id` AS `jst_3210_id` FROM
+        `jst_3210` UNION ALL SELECT `jst_3150`.`jst_3150_f5178` AS
+        `jst_3150_f5178`,`jst_3150`.`jst_3150_f5177` AS
+        `jst_3150_f5177`,`jst_3150`.`jst_3150_f4084` AS
+        `jst_3150_f4084`,`jst_3150`.`jst_3150_id` AS `jst_3150_id` FROM
+        `jst_3150` UNION ALL SELECT `jst_3138`.`jst_3138_f5169` AS
+        `jst_3138_f5169`,`jst_3138`.`jst_3138_f5168` AS
+        `jst_3138_f5168`,`jst_3138`.`jst_3138_f4203` AS
+        `jst_3138_f4203`,`jst_3138`.`jst_3138_id` AS `jst_3138_id` FROM
+        `jst_3138` UNION ALL SELECT `jst_3209`.`jst_3209_f4112` AS
+        `jst_3209_f4112`,`jst_3209`.`jst_3209_f4111` AS
+        `jst_3209_f4111`,`jst_3209`.`jst_3209_f4113` AS
+        `jst_3209_f4113`,`jst_3209`.`jst_3209_id` AS `jst_3209_id` FROM
+        `jst_3209` UNION ALL SELECT `jst_3210`.`jst_3210_f4112` AS
+        `jst_3210_f4112`,`jst_3210`.`jst_3210_f4111` AS
+        `jst_3210_f4111`,`jst_3210`.`jst_3210_f4113` AS
+        `jst_3210_f4113`,`jst_3210`.`jst_3210_id` AS `jst_3210_id` FROM
+        `jst_3210` UNION ALL SELECT `jst_3207`.`jst_3207_f5171` AS
+        `jst_3207_f5171`,`jst_3207`.`jst_3207_f5170` AS
+        `jst_3207_f5170`,`jst_3207`.`jst_3207_f3993` AS
+        `jst_3207_f3993`,`jst_3207`.`jst_3207_id` AS `jst_3207_id` FROM
+        `jst_3207` UNION ALL SELECT `jst_3129`.`jst_3129_f5382` AS
+        `jst_3129_f5382`,`jst_3129`.`jst_3129_f5381` AS
+        `jst_3129_f5381`,`jst_3129`.`jst_3129_f4078` AS
+        `jst_3129_f4078`,`jst_3129`.`jst_3129_FOREIGNKEY` AS
+        `jst_3129_FOREIGNKEY` FROM `jst_3129` UNION ALL SELECT
+        `jst_3153`.`jst_3153_f5514` AS
+        `jst_3153_f5514`,`jst_3153`.`jst_3153_f5513` AS
+        `jst_3153_f5513`,`jst_3153`.`jst_3153_f4165` AS
+        `jst_3153_f4165`,`jst_3153`.`jst_3153_id` AS `jst_3153_id` FROM
+        `jst_3153`
+        ) AS a, jsf_work w
+        <where>
+            <if test="workFileProject != null">
+                AND a.project_number=#{workFileProject}
+            </if>
+            AND w.WORKRECORD_ID=a.project_id AND w.WORKSTATUS=1
+        </where>
+    </select>
+</mapper>

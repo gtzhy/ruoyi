@@ -11,8 +11,8 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Primary;
 import com.alibaba.druid.pool.DruidDataSource;
-import com.alibaba.druid.spring.boot4.autoconfigure.DruidDataSourceBuilder;
-import com.alibaba.druid.spring.boot4.autoconfigure.properties.DruidStatProperties;
+import com.alibaba.druid.spring.boot3.autoconfigure.DruidDataSourceBuilder;
+import com.alibaba.druid.spring.boot3.autoconfigure.properties.DruidStatProperties;
 import com.alibaba.druid.util.Utils;
 import com.ruoyi.common.enums.DataSourceType;
 import com.ruoyi.common.utils.spring.SpringUtils;
@@ -49,6 +49,15 @@ public class DruidConfig
         return druidProperties.dataSource(dataSource);
     }
 
+    @Bean
+    @ConfigurationProperties("spring.datasource.druid.slave2")
+    @ConditionalOnProperty(prefix = "spring.datasource.druid.slave2", name = "enabled", havingValue = "true")
+    public DataSource slave2DataSource(DruidProperties druidProperties)
+    {
+        DruidDataSource dataSource = DruidDataSourceBuilder.create().build();
+        return druidProperties.dataSource(dataSource);
+    }
+
     @Bean(name = "dynamicDataSource")
     @Primary
     public DynamicDataSource dataSource(DataSource masterDataSource)
@@ -56,9 +65,10 @@ public class DruidConfig
         Map<Object, Object> targetDataSources = new HashMap<>();
         targetDataSources.put(DataSourceType.MASTER.name(), masterDataSource);
         setDataSource(targetDataSources, DataSourceType.SLAVE.name(), "slaveDataSource");
+        setDataSource(targetDataSources, DataSourceType.SLAVE2.name(), "slave2DataSource");
         return new DynamicDataSource(masterDataSource, targetDataSources);
     }
-
+    
     /**
      * 设置数据源
      * 
@@ -99,7 +109,6 @@ public class DruidConfig
             public void init(jakarta.servlet.FilterConfig filterConfig) throws ServletException
             {
             }
-
             @Override
             public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
                     throws IOException, ServletException
@@ -114,7 +123,6 @@ public class DruidConfig
                 text = text.replaceAll("powered.*?shrek.wang</a>", "");
                 response.getWriter().write(text);
             }
-
             @Override
             public void destroy()
             {
